@@ -1,5 +1,7 @@
 import React from 'react';
 import {Board} from './board.js';
+import * as nishi_weak from './nishi.js';
+import * as nishi_strong from './nishi3.js';
 
 function calculateWinner(squares){
   const lines = [
@@ -25,50 +27,59 @@ class Game extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      history: [{
-        squares: Array(9).fill(null),
-      }],
-      stepNumber: 0,
+      squares: Array(9).fill(null),
       xIsNext: true,
+      winnerHistory: [],
     };
   }
   handleClick(i){
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
+    const squares = this.state.squares.slice();
     if(calculateWinner(squares) || squares[i]){
       return;
     }
     squares[i] = this.state.xIsNext ? 'X' : 'O';
+    const winner = calculateWinner(squares);
+    const wh = this.state.winnerHistory.slice();
+    let winnerHistory;
+    if(winner){
+      winnerHistory = wh.concat(winner);
+    }else{
+      winnerHistory = wh;
+    }
     this.setState({
-      history: history.concat([{
-        squares: squares
-      }]),
-      stepNumber: history.length,
+      squares: squares,
       xIsNext: !this.state.xIsNext,
+      winnerHistory: winnerHistory,
     });
   }
-  jumpTo(step){
-    this.setState({
-      stepNumber: step,
-      xIsNext: (step % 2) === 0,
-    });
+  handleReset(){
+    this.setState({squares: Array(9).fill(null)});
   }
   render() {
-    const history = this.state.history;
-    const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const winner = calculateWinner(this.state.squares);
     let status;
     if(winner){
       status = 'Winner: ' + winner;
     } else{
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      if(this.state.xIsNext === false){
+        let index = nishi_weak.judge(this.state.squares,this.state.xIsNext ? 'X' : 'O');
+        this.handleClick(index);
+      }
     }
+    const tableTags = this.state.winnerHistory.map((val,i) =>{
+      return(
+        <tr key={i}>
+          <td>{i + 1}</td>
+          <td>{val}</td>
+        </tr>
+      )
+    })
     return (
       <div className="game">
         <div className="game-board">
           <Board 
-            squares={current.squares}
+            squares={this.state.squares}
             onClick={(i) => this.handleClick(i)}
           />
         </div>
@@ -86,7 +97,7 @@ class Game extends React.Component {
             </label>
           </div>
           <div>
-            <button>リセット</button>
+            <button className="reset_button" onClick={()=>this.handleReset()}>リセット</button>
             <span>先攻 : 俺</span>
           </div>
           <div>{status}</div>
@@ -102,28 +113,7 @@ class Game extends React.Component {
                   <th>勝者</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>君</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>俺</td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td>俺</td>
-                </tr>
-                <tr>
-                  <td>4</td>
-                  <td>俺</td>
-                </tr>
-                <tr>
-                  <td>5</td>
-                  <td>俺</td>
-                </tr>
-              </tbody>
+              <tbody>{tableTags}</tbody>
             </table>
           </div>
         </div>

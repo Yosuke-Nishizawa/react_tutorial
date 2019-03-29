@@ -96,3 +96,10 @@ ol, ul {
   border-radius: 50%;
   background: white;
 }
+.reset_button{
+  border-radius: 25px;
+  color: white;
+  background-color: #2196F3;
+  padding: 7px 20px;
+  border: none;
+}
